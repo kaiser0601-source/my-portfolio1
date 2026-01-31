@@ -130,16 +130,33 @@
 
         // 4. 資產操作
         async function addAsset() {
-            const name = document.getElementById('asset-name').value.toUpperCase().trim();
-            const amount = parseFloat(document.getElementById('asset-amount').value);
-            if (!name || !amount) return;
+    const name = document.getElementById('asset-name').value.toUpperCase().trim();
+    const amount = parseFloat(document.getElementById('asset-amount').value);
+    const type = document.getElementById('asset-type').value;
+    
+    if (!name || isNaN(amount)) return;
 
-            const price = await fetchPrice(name);
-            assets.push({ name, amount, price });
-            saveAndRender();
-            document.getElementById('asset-name').value = "";
-            document.getElementById('asset-amount').value = "";
-        }
+    // --- 新增自動累加邏輯 ---
+    // 檢查清單中是否已經有相同代號且相同幣別的資產
+    const existingAsset = assets.find(a => a.name === name && a.type === type);
+
+    if (existingAsset) {
+        // 如果找到了，就直接把股數加上去
+        existingAsset.amount += amount;
+    } else {
+        // 如果沒找到，才新增一個新的項目
+        const price = await fetchPrice(name); // 這是抓取美股價格的函式
+        assets.push({ name, amount, type, price: 0 });
+    }
+    // -----------------------
+
+    localStorage.setItem('global_assets', JSON.stringify(assets));
+    fetchAllData(); // 重新抓取價格並渲染畫面
+
+    // 清空輸入框
+    document.getElementById('asset-name').value = "";
+    document.getElementById('asset-amount').value = "";
+}
 
         function deleteAsset(index) {
             assets.splice(index, 1);
@@ -176,4 +193,5 @@
     </script>
 </body>
 </html>
+
 
