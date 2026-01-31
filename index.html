@@ -3,166 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球資產配置監控</title>
+    <title>我的私人資產配置筆記本</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
-    <div id="main-content" class="container mx-auto p-4 max-w-5xl">
-        
-        <header class="flex justify-between items-center my-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <div>
-                <h1 class="text-2xl font-black text-gray-800">Global Portfolio</h1>
-                <p id="fx-rate-display" class="text-sm text-blue-500 font-bold">目前匯率 1 USD = -- TWD</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <select id="display-currency" onchange="renderAssets()" class="p-2 border rounded-lg font-bold bg-gray-50">
-                    <option value="TWD">顯示 TWD</option>
-                    <option value="USD">顯示 USD</option>
-                </select>
-                <button onclick="fetchAllData()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">更新報價</button>
-            </div>
-        </header>
+    <div id="login-section" class="bg-white p-8 rounded-lg shadow-md w-96">
+        <h2 class="text-2xl font-bold mb-4 text-center">身份驗證</h2>
+        <input type="password" id="password-input" placeholder="請輸入訪問密碼" class="w-full p-2 border rounded mb-4">
+        <button onclick="checkPassword()" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">進入系統</button>
+        <p id="login-error" class="text-red-500 text-sm mt-2 hidden">密碼錯誤，請重試。</p>
+    </div>
 
-        <details class="mb-6 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-            <summary class="p-4 cursor-pointer font-bold text-gray-600 bg-gray-50">API 與數據源設定</summary>
-            <div class="p-4 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold mb-1">Google Sheet CSV (台股與匯率)</label>
-                    <input type="text" id="sheet-url" class="w-full p-2 border rounded text-sm" placeholder="貼上 CSV 連結">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1">Finnhub API Key (美股)</label>
-                    <input type="text" id="finnhub-key" class="w-full p-2 border rounded text-sm" placeholder="貼上 Finnhub Key">
-                </div>
-                <button onclick="saveConfig()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm">儲存設定</button>
+    <div id="main-content" class="hidden w-full max-w-4xl p-4">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">資產配置記錄</h1>
+                <button onclick="logout()" class="text-sm text-gray-500 underline">登出</button>
             </div>
-        </details>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <input type="text" id="asset-name" placeholder="代號 (如: 2330 或 AAPL)" class="p-3 border rounded-xl">
-            <input type="number" id="asset-amount" placeholder="持有股數" class="p-3 border rounded-xl">
-            <select id="asset-type" class="p-3 border rounded-xl bg-white">
-                <option value="TWD">台股 (TWD)</option>
-                <option value="USD">美股 (USD)</option>
-            </select>
-            <button onclick="addAsset()" class="bg-black text-white p-3 rounded-xl font-bold">+ 加入清單</button>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="p-4 text-sm font-bold text-gray-500">標的</th>
-                        <th class="p-4 text-sm font-bold text-gray-500">股數</th>
-                        <th class="p-4 text-sm font-bold text-gray-500">原幣現價</th>
-                        <th class="p-4 text-sm font-bold text-gray-500 text-right">價值 (估)</th>
-                        <th class="p-4 text-sm font-bold text-gray-500 text-center">刪除</th>
-                    </tr>
-                </thead>
-                <tbody id="asset-list" class="divide-y divide-gray-50"></tbody>
-            </table>
-            <div class="p-8 bg-gray-900 text-white flex justify-between items-center">
-                <span class="text-gray-400 font-medium">預估總淨值</span>
-                <span id="total-val" class="text-4xl font-black text-yellow-400">$ 0</span>
+            <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400">
+                <label class="block text-sm font-medium text-gray-700">Google 試算表 CSV 連結：</label>
+                <input type="text" id="sheet-url" placeholder="貼上發佈到網路的 CSV 網址" class="w-full mt-1 p-2 border rounded text-sm">
+                <button onclick="saveSettings()" class="mt-2 bg-gray-700 text-white px-4 py-1 rounded text-sm">儲存設定</button>
             </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <input type="text" id="asset-name" placeholder="標的名稱 (如：台積電)" class="p-2 border rounded">
+                <input type="number" id="asset-amount" placeholder="持有股數" class="p-2 border rounded">
+                <button onclick="addAsset()" class="bg-green-500 text-white p-2 rounded hover:bg-green-600">+ 新增標的</button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="p-3 border">標的名稱</th>
+                            <th class="p-3 border">持有股數</th>
+                            <th class="p-3 border text-blue-600">即時股價 (連動)</th>
+                            <th class="p-3 border">總估值</th>
+                            <th class="p-3 border">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="asset-list">
+                        </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-right font-bold text-xl" id="total-value">總資產價值：$0</div>
         </div>
     </div>
 
     <script>
-        let assets = JSON.parse(localStorage.getItem('global_assets')) || [];
-        let config = JSON.parse(localStorage.getItem('global_config')) || { sheet: '', finnhub: '' };
-        let fxRate = 1.0; // USD to TWD
+        const MASTER_PASSWORD = "你的密碼123"; // 在此修改你的網頁密碼
+        let assets = JSON.parse(localStorage.getItem('myAssets')) || [];
+        let sheetUrl = localStorage.getItem('sheetUrl') || "";
 
-        function saveConfig() {
-            config.sheet = document.getElementById('sheet-url').value;
-            config.finnhub = document.getElementById('finnhub-key').value;
-            localStorage.setItem('global_config', JSON.stringify(config));
-            alert('設定已儲存');
-            fetchAllData();
+        // 1. 登入邏輯
+        function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            if (input === MASTER_PASSWORD) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                init();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
         }
 
-        async function fetchAllData() {
-            if (!config.sheet) return alert("請先設定 Google Sheet 連結以取得匯率與台股資料");
-            
-            try {
-                // 1. 抓取 Google 數據 (匯率 + 台股)
-                const res = await fetch(config.sheet);
-                const csvText = await res.text();
-                const rows = csvText.split('\n').map(r => r.split(','));
-                
-                // 更新匯率
-                const fxRow = rows.find(r => r[0].trim() === 'USDTWD');
-                if (fxRow) fxRate = parseFloat(fxRow[1]);
-                document.getElementById('fx-rate-display').innerText = `目前匯率 1 USD = ${fxRate.toFixed(2)} TWD`;
-
-                // 2. 更新資產價格
-                for (let asset of assets) {
-                    if (asset.type === 'TWD') {
-                        const found = rows.find(r => r[0].trim() === asset.name);
-                        asset.price = found ? parseFloat(found[1]) : 0;
-                    } else if (asset.type === 'USD' && config.finnhub) {
-                        const fhRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${asset.name}&token=${config.finnhub}`);
-                        const fhData = await fhRes.json();
-                        asset.price = fhData.c || 0;
-                    }
-                }
-                renderAssets();
-            } catch (e) { console.error(e); }
+        function logout() {
+            location.reload();
         }
 
+        // 2. 初始化與設定儲存
+        function init() {
+            document.getElementById('sheet-url').value = sheetUrl;
+            renderAssets();
+            if (sheetUrl) fetchPrices();
+        }
+
+        function saveSettings() {
+            sheetUrl = document.getElementById('sheet-url').value;
+            localStorage.setItem('sheetUrl', sheetUrl);
+            alert('設定已儲存！');
+            fetchPrices();
+        }
+
+        // 3. 資產管理邏輯
         function addAsset() {
-            const name = document.getElementById('asset-name').value.toUpperCase().trim();
-            const amount = parseFloat(document.getElementById('asset-amount').value);
-            const type = document.getElementById('asset-type').value;
-            if (!name || isNaN(amount)) return;
+            const name = document.getElementById('asset-name').value;
+            const amount = document.getElementById('asset-amount').value;
+            if (!name || !amount) return;
 
-            assets.push({ name, amount, type, price: 0 });
-            localStorage.setItem('global_assets', JSON.stringify(assets));
-            fetchAllData();
+            assets.push({ name, amount: parseFloat(amount), price: 0 });
+            saveAssets();
+            renderAssets();
         }
 
         function deleteAsset(index) {
             assets.splice(index, 1);
-            localStorage.setItem('global_assets', JSON.stringify(assets));
+            saveAssets();
             renderAssets();
         }
 
+        function saveAssets() {
+            localStorage.setItem('myAssets', JSON.stringify(assets));
+        }
+
+        // 4. 串接 Google 試算表股價 (關鍵代碼)
+        async function fetchPrices() {
+            if (!sheetUrl) return;
+            try {
+                const response = await fetch(sheetUrl);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => row.split(','));
+                
+                // 假設 CSV 第一欄是名稱，第二欄是股價
+                assets.forEach(asset => {
+                    const found = rows.find(r => r[0].trim() === asset.name.trim());
+                    if (found) asset.price = parseFloat(found[1]);
+                });
+                renderAssets();
+            } catch (error) {
+                console.error("抓取股價失敗:", error);
+            }
+        }
+
+        // 5. 渲染畫面
         function renderAssets() {
             const list = document.getElementById('asset-list');
-            const displayCurrency = document.getElementById('display-currency').value;
             list.innerHTML = '';
-            let totalInBase = 0; // 統一轉換後的總額
+            let total = 0;
 
-            assets.forEach((asset, i) => {
-                const price = asset.price || 0;
-                // 計算該資產轉換成「當前顯示幣別」後的價值
-                let valInTWD = asset.type === 'TWD' ? (price * asset.amount) : (price * asset.amount * fxRate);
-                let valInUSD = valInTWD / fxRate;
-                
-                let displayVal = displayCurrency === 'TWD' ? valInTWD : valInUSD;
-                totalInBase += displayVal;
-
+            assets.forEach((asset, index) => {
+                const subtotal = asset.amount * (asset.price || 0);
+                total += subtotal;
                 list.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-4 font-bold">${asset.name} <span class="text-[10px] bg-gray-200 px-1 rounded">${asset.type}</span></td>
-                        <td class="p-4 font-mono">${asset.amount}</td>
-                        <td class="p-4 font-mono text-blue-600">${price.toFixed(2)}</td>
-                        <td class="p-4 text-right font-black">$ ${displayVal.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
-                        <td class="p-4 text-center"><button onclick="deleteAsset(${i})" class="text-red-400">✕</button></td>
+                    <tr>
+                        <td class="p-3 border">${asset.name}</td>
+                        <td class="p-3 border">${asset.amount.toLocaleString()}</td>
+                        <td class="p-3 border text-blue-600 font-mono">${asset.price || '讀取中...'}</td>
+                        <td class="p-3 border font-bold">$${subtotal.toLocaleString()}</td>
+                        <td class="p-3 border"><button onclick="deleteAsset(${index})" class="text-red-500">刪除</button></td>
                     </tr>
                 `;
             });
-
-            document.getElementById('total-val').innerText = `${displayCurrency} ${totalInBase.toLocaleString(undefined, {maximumFractionDigits:0})}`;
+            document.getElementById('total-value').innerText = `總資產價值：$${total.toLocaleString()}`;
         }
-
-        // 初始化
-        window.onload = () => {
-            document.getElementById('sheet-url').value = config.sheet;
-            document.getElementById('finnhub-key').value = config.finnhub;
-            if(assets.length > 0) renderAssets();
-        };
     </script>
 </body>
 </html>
