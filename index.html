@@ -3,65 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的私人資產配置筆記本</title>
+    <title>美股資產自動追蹤</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center font-sans text-slate-900">
 
-    <div id="login-section" class="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 class="text-2xl font-bold mb-4 text-center">身份驗證</h2>
-        <input type="password" id="password-input" placeholder="請輸入訪問密碼" class="w-full p-2 border rounded mb-4">
-        <button onclick="checkPassword()" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">進入系統</button>
-        <p id="login-error" class="text-red-500 text-sm mt-2 hidden">密碼錯誤，請重試。</p>
+    <div id="login-section" class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-slate-800">資產保險箱</h2>
+            <p class="text-slate-500 mt-2">請輸入存取密碼</p>
+        </div>
+        <input type="password" id="9003042449" placeholder="••••••••" class="w-full p-3 border-2 border-slate-100 rounded-xl mb-4 focus:border-blue-500 focus:outline-none transition-all text-center text-lg">
+        <button onclick="checkPassword()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-700 transition-all shadow-lg">解鎖進入</button>
+        <p id="login-error" class="text-red-500 text-sm mt-4 text-center hidden">❌ 密碼錯誤，拒絕存取。</p>
     </div>
 
-    <div id="main-content" class="hidden w-full max-w-4xl p-4">
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">資產配置記錄</h1>
-                <button onclick="logout()" class="text-sm text-gray-500 underline">登出</button>
+    <div id="main-content" class="hidden w-full max-w-5xl p-6">
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Portfolio Tracker</h1>
+                    <p class="text-slate-400 text-sm">自動連動 Finnhub 即時美股行情</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="fetchAllPrices()" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100">🔄 刷新行情</button>
+                    <button onclick="logout()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-200">登出</button>
+                </div>
             </div>
 
-            <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400">
-                <label class="block text-sm font-medium text-gray-700">Google 試算表 CSV 連結：</label>
-                <input type="text" id="sheet-url" placeholder="貼上發佈到網路的 CSV 網址" class="w-full mt-1 p-2 border rounded text-sm">
-                <button onclick="saveSettings()" class="mt-2 bg-gray-700 text-white px-4 py-1 rounded text-sm">儲存設定</button>
+            <div class="mb-8 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                <label class="block text-xs font-bold text-amber-700 uppercase mb-1">Finnhub API Key</label>
+                <div class="flex gap-2">
+                    <input type="text" id="api-key-input" placeholder="d5ut0d1r01qr4f8acirgd5ut0d1r01qr4f8acis0" class="flex-1 p-2 border rounded-lg text-sm">
+                    <button onclick="saveApiKey()" class="bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">儲存</button>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <input type="text" id="asset-name" placeholder="標的名稱 (如：台積電)" class="p-2 border rounded">
-                <input type="number" id="asset-amount" placeholder="持有股數" class="p-2 border rounded">
-                <button onclick="addAsset()" class="bg-green-500 text-white p-2 rounded hover:bg-green-600">+ 新增標的</button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">美股代號 (Symbol)</label>
+                    <input type="text" id="asset-name" placeholder="例如: NVDA" class="w-full p-3 border rounded-xl uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">持有股數 (Shares)</label>
+                    <input type="number" id="asset-amount" placeholder="0.00" class="w-full p-3 border rounded-xl">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="addAsset()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 shadow-md">+ 新增至組合</button>
+                </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-200">
-                            <th class="p-3 border">標的名稱</th>
-                            <th class="p-3 border">持有股數</th>
-                            <th class="p-3 border text-blue-600">即時股價 (連動)</th>
-                            <th class="p-3 border">總估值</th>
-                            <th class="p-3 border">操作</th>
+            <div class="overflow-hidden rounded-xl border border-slate-100 mb-6">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-4 text-sm font-bold text-slate-500">代號</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-right">持有股數</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-right">最新股價 (USD)</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-right">目前價值</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-center">操作</th>
                         </tr>
                     </thead>
-                    <tbody id="asset-list">
+                    <tbody id="asset-list" class="divide-y divide-slate-100">
                         </tbody>
                 </table>
             </div>
-            <div class="mt-4 text-right font-bold text-xl" id="total-value">總資產價值：$0</div>
+
+            <div class="flex justify-end items-center p-6 bg-slate-900 rounded-2xl text-white">
+                <span class="mr-4 text-slate-400">預估總資產：</span>
+                <span class="text-3xl font-black" id="total-value">$0.00</span>
+            </div>
         </div>
     </div>
 
     <script>
-        const MASTER_PASSWORD = "9003042449"; // 在此修改你的網頁密碼
-        let assets = JSON.parse(localStorage.getItem('myAssets')) || [];
-        let sheetUrl = localStorage.getItem('sheetUrl') || "";
+        const PAGE_PASSWORD = "你的密碼123"; // 這裡改網頁密碼
+        let assets = JSON.parse(localStorage.getItem('us_assets')) || [];
+        let finnhubKey = localStorage.getItem('finnhub_key') || "";
 
         // 1. 登入邏輯
         function checkPassword() {
-            const input = document.getElementById('password-input').value;
-            if (input === MASTER_PASSWORD) {
+            if (document.getElementById('password-input').value === PAGE_PASSWORD) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
                 init();
@@ -70,65 +92,65 @@
             }
         }
 
-        function logout() {
-            location.reload();
-        }
+        function logout() { location.reload(); }
 
-        // 2. 初始化與設定儲存
+        // 2. 初始化
         function init() {
-            document.getElementById('sheet-url').value = sheetUrl;
+            document.getElementById('api-key-input').value = finnhubKey;
             renderAssets();
-            if (sheetUrl) fetchPrices();
+            if (finnhubKey) fetchAllPrices();
         }
 
-        function saveSettings() {
-            sheetUrl = document.getElementById('sheet-url').value;
-            localStorage.setItem('sheetUrl', sheetUrl);
-            alert('設定已儲存！');
-            fetchPrices();
+        function saveApiKey() {
+            finnhubKey = document.getElementById('api-key-input').value.trim();
+            localStorage.setItem('finnhub_key', finnhubKey);
+            alert('API Key 已儲存！');
+            fetchAllPrices();
         }
 
-        // 3. 資產管理邏輯
-        function addAsset() {
-            const name = document.getElementById('asset-name').value;
-            const amount = document.getElementById('asset-amount').value;
+        // 3. 獲取股價 (關鍵 API 呼叫)
+        async function fetchPrice(symbol) {
+            if (!finnhubKey) return 0;
+            try {
+                const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol.toUpperCase()}&token=${finnhubKey}`);
+                const data = await response.json();
+                return data.c || 0; // 'c' 代表 Current Price
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        async function fetchAllPrices() {
+            if (!finnhubKey) return alert("請先輸入 API Key");
+            for (let asset of assets) {
+                asset.price = await fetchPrice(asset.name);
+            }
+            saveAndRender();
+        }
+
+        // 4. 資產操作
+        async function addAsset() {
+            const name = document.getElementById('asset-name').value.toUpperCase().trim();
+            const amount = parseFloat(document.getElementById('asset-amount').value);
             if (!name || !amount) return;
 
-            assets.push({ name, amount: parseFloat(amount), price: 0 });
-            saveAssets();
-            renderAssets();
+            const price = await fetchPrice(name);
+            assets.push({ name, amount, price });
+            saveAndRender();
+            document.getElementById('asset-name').value = "";
+            document.getElementById('asset-amount').value = "";
         }
 
         function deleteAsset(index) {
             assets.splice(index, 1);
-            saveAssets();
+            saveAndRender();
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('us_assets', JSON.stringify(assets));
             renderAssets();
         }
 
-        function saveAssets() {
-            localStorage.setItem('myAssets', JSON.stringify(assets));
-        }
-
-        // 4. 串接 Google 試算表股價 (關鍵代碼)
-        async function fetchPrices() {
-            if (!sheetUrl) return;
-            try {
-                const response = await fetch(sheetUrl);
-                const data = await response.text();
-                const rows = data.split('\n').map(row => row.split(','));
-                
-                // 假設 CSV 第一欄是名稱，第二欄是股價
-                assets.forEach(asset => {
-                    const found = rows.find(r => r[0].trim() === asset.name.trim());
-                    if (found) asset.price = parseFloat(found[1]);
-                });
-                renderAssets();
-            } catch (error) {
-                console.error("抓取股價失敗:", error);
-            }
-        }
-
-        // 5. 渲染畫面
         function renderAssets() {
             const list = document.getElementById('asset-list');
             list.innerHTML = '';
@@ -138,18 +160,19 @@
                 const subtotal = asset.amount * (asset.price || 0);
                 total += subtotal;
                 list.innerHTML += `
-                    <tr>
-                        <td class="p-3 border">${asset.name}</td>
-                        <td class="p-3 border">${asset.amount.toLocaleString()}</td>
-                        <td class="p-3 border text-blue-600 font-mono">${asset.price || '讀取中...'}</td>
-                        <td class="p-3 border font-bold">$${subtotal.toLocaleString()}</td>
-                        <td class="p-3 border"><button onclick="deleteAsset(${index})" class="text-red-500">刪除</button></td>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-black text-slate-700">${asset.name}</td>
+                        <td class="p-4 text-right font-mono">${asset.amount.toLocaleString()}</td>
+                        <td class="p-4 text-right text-blue-600 font-mono font-bold">$${(asset.price || 0).toFixed(2)}</td>
+                        <td class="p-4 text-right font-bold">$${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteAsset(${index})" class="text-slate-300 hover:text-red-500 transition-colors">移除</button>
+                        </td>
                     </tr>
                 `;
             });
-            document.getElementById('total-value').innerText = `總資產價值：$${total.toLocaleString()}`;
+            document.getElementById('total-value').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
         }
     </script>
 </body>
 </html>
-
