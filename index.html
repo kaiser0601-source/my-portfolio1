@@ -74,7 +74,9 @@
     <script>
         const PAGE_PASSWORD = "9003042449"; // 修改你的開啟密碼
         let assets = JSON.parse(localStorage.getItem('global_assets')) || [];
-        let config = JSON.parse(localStorage.getItem('global_config')) || { sheet: '', finnhub: '' };
+        let config = JSON.parse(localStorage.getItem('global_config')) || { 
+    sheet: '你的Google試算表CSV連結', 
+    finnhub: 'd5ut0d1r01qr4f8acirgd5ut0d1r01qr4f8acis0' };
         let fxRate = 32.0; 
 
         // 1. 密碼驗證
@@ -200,4 +202,5 @@
     </script>
 </body>
 </html>
+
 
