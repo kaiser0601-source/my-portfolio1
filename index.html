@@ -3,131 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球資產配置儀表板</title>
+    <title>美股資產配置監控</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
 
     <div id="login-section" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-50">
         <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-            <h2 class="text-3xl font-black text-center mb-6">美股部位計算</h2>
-            <input type="password" id="password-input" placeholder="請輸入訪問密碼" class="w-full p-3 border-2 rounded-xl mb-4 text-center">
-            <button onclick="checkPassword()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">解鎖進入</button>
-            <p id="login-error" class="text-red-500 text-sm mt-4 text-center hidden">密碼錯誤</p>
+            <h2 class="text-3xl font-black text-center mb-6">私人美股庫</h2>
+            <input type="password" id="password-input" placeholder="請輸入訪問密碼" class="w-full p-3 border-2 rounded-xl mb-4 text-center text-lg">
+            <button onclick="checkPassword()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">解鎖進入</button>
+            <p id="login-error" class="text-red-500 text-sm mt-4 text-center hidden">❌ 密碼錯誤</p>
         </div>
     </div>
 
     <div id="main-content" class="hidden container mx-auto p-4 max-w-5xl">
         <header class="flex justify-between items-center my-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div>
-                <h1 class="text-2xl font-black">Portfolio Dashboard</h1>
-                <p id="fx-rate-display" class="text-sm text-blue-500 font-bold">匯率載入中...</p>
+                <h1 class="text-2xl font-black text-slate-800">US Stock Portfolio</h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">USD/TWD Rate:</span>
+                    <input type="number" id="fx-rate-input" onchange="updateFxRate()" class="w-20 p-1 border rounded font-mono font-bold text-blue-600" step="0.1">
+                </div>
             </div>
             <div class="flex gap-3">
                 <select id="display-currency" onchange="renderAssets()" class="p-2 border rounded-lg font-bold bg-slate-50">
-                    <option value="TWD">顯示 TWD</option>
                     <option value="USD">顯示 USD</option>
+                    <option value="TWD">顯示 TWD</option>
                 </select>
-                <button onclick="fetchAllData()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700">🔄 刷新報價</button>
+                <button onclick="fetchAllPrices()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition">🔄 刷新行情</button>
             </div>
         </header>
 
-        <details class="mb-6 bg-white rounded-xl shadow-sm border border-slate-200">
-            <summary class="p-4 cursor-pointer font-bold text-slate-600">數據源設定 (API Key / Google Sheet)</summary>
-            <div class="p-4 space-y-4">
-                <input type="text" id="sheet-url" class="w-full p-2 border rounded" placeholder="Google Sheet CSV 連結 (台股與匯率)">
-                <input type="text" id="finnhub-key" class="w-full p-2 border rounded" placeholder="Finnhub API Key (美股)">
-                <button onclick="saveConfig()" class="bg-slate-800 text-white px-4 py-2 rounded">儲存設定</button>
-            </div>
-        </details>
+        <div class="mb-6 px-4 py-2 bg-slate-100 rounded-lg inline-block text-xs font-mono text-slate-500">
+            API Key: d5ut0d1r01...acis0 (已連接)
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <input type="text" id="asset-name" placeholder="代號 (如: 2330 或 TSLA)" class="p-3 border rounded-xl uppercase">
-            <input type="number" id="asset-amount" placeholder="持有股數" class="p-3 border rounded-xl">
-            <select id="asset-type" class="p-3 border rounded-xl bg-white">
-                <option value="TWD">台股 (TWD)</option>
-                <option value="USD">美股 (USD)</option>
-            </select>
-            <button onclick="addAsset()" class="bg-black text-white p-3 rounded-xl font-bold hover:opacity-80">+ 新增/累加</button>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-1">美股代號 (Symbol)</label>
+                <input type="text" id="asset-name" placeholder="例如: NVDA" class="w-full p-3 border rounded-xl uppercase font-bold focus:border-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-1">持有股數 (Shares)</label>
+                <input type="number" id="asset-amount" placeholder="0.00" class="w-full p-3 border rounded-xl font-mono focus:border-blue-500 outline-none">
+            </div>
+            <div class="flex items-end">
+                <button onclick="addAsset()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg transition">+ 新增 / 自動累加</button>
+            </div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden mb-6">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 border-b">
-                    <tr>
-                        <th class="p-4 text-sm font-bold">標的</th>
-                        <th class="p-4 text-sm font-bold">股數</th>
-                        <th class="p-4 text-sm font-bold">現價</th>
-                        <th class="p-4 text-sm font-bold text-right">估值</th>
-                        <th class="p-4 text-sm font-bold text-center">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="asset-list" class="divide-y"></tbody>
-            </table>
-            <div class="p-6 bg-slate-900 text-white flex justify-between items-center">
-                <span class="text-slate-400">資產總淨值</span>
-                <span id="total-val" class="text-3xl font-black text-yellow-400">$ 0</span>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-4 text-sm font-bold text-slate-500">標的代號</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-right">持有股數</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-right">最新市價</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-right">目前估值</th>
+                            <th class="p-4 text-sm font-bold text-slate-500 text-center">管理</th>
+                        </tr>
+                    </thead>
+                    <tbody id="asset-list" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+            <div class="p-8 bg-slate-900 text-white flex justify-between items-center">
+                <span class="text-slate-400 font-bold uppercase tracking-widest">Portfolio Total Value</span>
+                <span id="total-val" class="text-4xl font-black text-yellow-400 font-mono">$ 0.00</span>
             </div>
         </div>
     </div>
 
     <script>
-        const PAGE_PASSWORD = "9003042449"; // 修改你的開啟密碼
-        let assets = JSON.parse(localStorage.getItem('global_assets')) || [];
-        let config = JSON.parse(localStorage.getItem('global_config')) || { 
-    sheet: '你的Google試算表CSV連結', 
-    finnhub: 'd5ut0d1r01qr4f8acirgd5ut0d1r01qr4f8acis0' };
-        let fxRate = 32.0; 
+        // --- 設定區 ---
+        const PAGE_PASSWORD = "9003042449"; // 修改你的網頁開啟密碼
+        const API_KEY = "d5ut0d1r01qr4f8acirgd5ut0d1r01qr4f8acis0"; // 已為您填入
+        
+        let assets = JSON.parse(localStorage.getItem('us_only_assets')) || [];
+        let fxRate = parseFloat(localStorage.getItem('us_twd_rate')) || 32.2;
 
-        // 1. 密碼驗證
+        // 1. 登入邏輯
         function checkPassword() {
-            if (document.getElementById('password-input').value === PAGE_PASSWORD) {
+            const input = document.getElementById('password-input').value;
+            if (input === PAGE_PASSWORD) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
                 init();
-            } else { document.getElementById('login-error').classList.remove('hidden'); }
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
         }
 
+        // 2. 初始化
         function init() {
-            document.getElementById('sheet-url').value = config.sheet;
-            document.getElementById('finnhub-key').value = config.finnhub;
+            document.getElementById('fx-rate-input').value = fxRate;
             renderAssets();
-            if (config.sheet) fetchAllData();
+            if (assets.length > 0) fetchAllPrices();
         }
 
-        function saveConfig() {
-            config.sheet = document.getElementById('sheet-url').value;
-            config.finnhub = document.getElementById('finnhub-key').value;
-            localStorage.setItem('global_config', JSON.stringify(config));
-            fetchAllData();
+        function updateFxRate() {
+            fxRate = parseFloat(document.getElementById('fx-rate-input').value) || 32.0;
+            localStorage.setItem('us_twd_rate', fxRate);
+            renderAssets();
         }
 
-        // 2. 核心：新增與自動累加
+        // 3. 核心功能：新增與自動累加
         async function addAsset() {
             const name = document.getElementById('asset-name').value.toUpperCase().trim();
             const amount = parseFloat(document.getElementById('asset-amount').value);
-            const type = document.getElementById('asset-type').value;
             if (!name || isNaN(amount)) return;
 
-            const existing = assets.find(a => a.name === name && a.type === type);
+            const existing = assets.find(a => a.name === name);
             if (existing) {
-                existing.amount += amount; // 自動累加
+                existing.amount += amount; // 相同代號則累加股數
             } else {
-                assets.push({ name, amount, type, price: 0 });
+                assets.push({ name, amount, price: 0 });
             }
+
             saveAndRefresh();
         }
 
-        // 3. 編輯功能
+        // 4. 管理功能：編輯與刪除
         function editAsset(index) {
-            const newAmount = prompt("請輸入新的股數:", assets[index].amount);
+            const newAmount = prompt(`修改 ${assets[index].name} 的持有股數:`, assets[index].amount);
             if (newAmount !== null && !isNaN(parseFloat(newAmount))) {
                 assets[index].amount = parseFloat(newAmount);
                 saveAndRefresh();
             }
         }
 
-        // 4. 刪除功能
         function deleteAsset(index) {
             if (confirm(`確定要刪除 ${assets[index].name} 嗎？`)) {
                 assets.splice(index, 1);
@@ -136,71 +141,57 @@
         }
 
         function saveAndRefresh() {
-            localStorage.setItem('global_assets', JSON.stringify(assets));
-            renderAssets();
-            fetchAllData();
+            localStorage.setItem('us_only_assets', JSON.stringify(assets));
             document.getElementById('asset-name').value = "";
             document.getElementById('asset-amount').value = "";
+            renderAssets();
+            fetchAllPrices();
         }
 
-        // 5. 抓取數據 (API & Google Sheet)
-        async function fetchAllData() {
-            if (!config.sheet) return;
-            try {
-                const res = await fetch(config.sheet);
-                const csv = await res.text();
-                const rows = csv.split('\n').map(r => r.split(','));
-                
-                // 更新匯率 (CSV 需有 USDTWD 這一列)
-                const fxRow = rows.find(r => r[0].trim() === 'USDTWD');
-                if (fxRow) {
-                    fxRate = parseFloat(fxRow[1]);
-                    document.getElementById('fx-rate-display').innerText = `目前匯率 1 USD = ${fxRate.toFixed(2)} TWD`;
-                }
-
-                for (let asset of assets) {
-                    if (asset.type === 'TWD') {
-                        const found = rows.find(r => r[0].trim() === asset.name);
-                        asset.price = found ? parseFloat(found[1]) : 0;
-                    } else if (asset.type === 'USD' && config.finnhub) {
-                        const fhRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${asset.name}&token=${config.finnhub}`);
-                        const fhData = await fhRes.json();
-                        asset.price = fhData.c || 0;
-                    }
-                }
-                renderAssets();
-            } catch (e) { console.error("更新失敗", e); }
+        // 5. 抓取美股報價 (Finnhub)
+        async function fetchAllPrices() {
+            if (!API_KEY) return;
+            for (let asset of assets) {
+                try {
+                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${asset.name}&token=${API_KEY}`);
+                    const data = await res.json();
+                    if (data.c) asset.price = data.c;
+                } catch (e) { console.error("抓取失敗", asset.name); }
+            }
+            renderAssets();
         }
 
-        // 6. 渲染畫面
+        // 6. 渲染畫面與幣別轉換
         function renderAssets() {
             const list = document.getElementById('asset-list');
             const currency = document.getElementById('display-currency').value;
             list.innerHTML = '';
-            let total = 0;
+            let totalUSD = 0;
 
             assets.forEach((asset, i) => {
-                const price = asset.price || 0;
-                let valTWD = asset.type === 'TWD' ? (price * asset.amount) : (price * asset.amount * fxRate);
-                let displayVal = currency === 'TWD' ? valTWD : valTWD / fxRate;
-                total += displayVal;
+                const subtotalUSD = asset.amount * (asset.price || 0);
+                totalUSD += subtotalUSD;
+                
+                const displayPrice = currency === 'TWD' ? (asset.price * fxRate) : asset.price;
+                const displaySubtotal = currency === 'TWD' ? (subtotalUSD * fxRate) : subtotalUSD;
 
                 list.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="p-4 font-bold">${asset.name} <span class="text-[10px] bg-slate-200 px-1 rounded">${asset.type}</span></td>
-                        <td class="p-4 font-mono">${asset.amount.toLocaleString()}</td>
-                        <td class="p-4 font-mono text-blue-600">${price.toFixed(2)}</td>
-                        <td class="p-4 text-right font-black">$${displayVal.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
+                        <td class="p-4 font-black text-slate-700">${asset.name}</td>
+                        <td class="p-4 text-right font-mono font-bold">${asset.amount.toLocaleString()}</td>
+                        <td class="p-4 text-right font-mono text-blue-600 font-bold">${displayPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td class="p-4 text-right font-mono font-black">$${displaySubtotal.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
                         <td class="p-4 text-center space-x-2">
-                            <button onclick="editAsset(${i})" class="text-indigo-500 hover:underline">編輯</button>
-                            <button onclick="deleteAsset(${i})" class="text-red-400 hover:underline">刪除</button>
+                            <button onclick="editAsset(${i})" class="text-indigo-500 font-bold hover:underline">編輯</button>
+                            <button onclick="deleteAsset(${i})" class="text-red-400 font-bold hover:underline">刪除</button>
                         </td>
-                    </tr>`;
+                    </tr>
+                `;
             });
-            document.getElementById('total-val').innerText = `${currency} ${total.toLocaleString(undefined,{maximumFractionDigits:0})}`;
+
+            const finalTotal = currency === 'TWD' ? (totalUSD * fxRate) : totalUSD;
+            document.getElementById('total-val').innerText = `${currency} ${finalTotal.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
         }
     </script>
 </body>
 </html>
-
-
